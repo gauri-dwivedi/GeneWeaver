@@ -94,3 +94,4 @@ def test_report_generator():
     report = generate_markdown_alignment_report(dummy_result, "GAGTCCGAGCAGAAGAAGAA", "chr1", 123)
     assert "GeneWeaver CRISPR Alignment Report" in report
     assert "100.0" in report
+

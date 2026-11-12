@@ -240,3 +240,4 @@ def export_benchmark_to_csv(df: pd.DataFrame, custom_path: Optional[str] = None)
 
     df.to_csv(target_path, index=False)
     return target_path
+

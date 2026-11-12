@@ -242,3 +242,4 @@ def render_visual_alignment(guide: str, target: str, pam: str, mismatches: list[
     </div>
     """
     st.markdown(alignment_block, unsafe_allow_html=True)
+

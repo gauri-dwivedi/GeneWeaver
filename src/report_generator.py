@@ -136,3 +136,4 @@ def export_alignment_csv(
 
     df.to_csv(target_path, index=False)
     return target_path
+

@@ -85,3 +85,4 @@ def test_cpu_gpu_on_sample_fasta():
     if len(cpu_res.matches) > 0:
         assert cpu_res.matches[0].start_pos == gpu_res.matches[0].start_pos
         assert cpu_res.matches[0].mismatch_count == gpu_res.matches[0].mismatch_count
+

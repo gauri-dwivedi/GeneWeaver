@@ -7,3 +7,4 @@ G05_ReverseStrand,GAGTCCGAGCAGAAGAAGAA,synthetic_ref_03_benchmark_array,reverse,
 G06_NonMatching,CCCCCCCCCCCCCCCCCCCC,synthetic_ref_01_emx1_locus,none,99,NGG,Negative control - poly-C guide with zero expected target sites
 G07_Invalid_Chars,GAGTCCGNNNNAAGAAGAA,synthetic_ref_01_emx1_locus,none,99,NGG,Test input containing degenerate IUPAC 'N' characters (for validation error checks)
 G08_Short_Length,GAGTCCGAGCA,synthetic_ref_01_emx1_locus,none,99,NGG,Test input shorter than standard 20bp guide (11bp - for validation warning checks)
+

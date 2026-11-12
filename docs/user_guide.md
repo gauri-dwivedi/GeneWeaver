@@ -100,3 +100,4 @@ To run the complete test suite:
 .\.venv\Scripts\pytest tests/ -v
 ```
 All 33 unit and integration tests should pass.
+

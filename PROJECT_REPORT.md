@@ -220,3 +220,4 @@ GeneWeaver successfully demonstrates how modern computational concepts, specific
 3. **Hsu, P. D., et al.** (2013). DNA targeting specificity of RNA-guided Cas9 nucleases. *Nature Biotechnology*, 31(9), 827–832.
 4. **Cock, P. J., et al.** (2009). Biopython: freely available Python tools for computational molecular biology and bioinformatics. *Bioinformatics*, 25(11), 1422–1423.
 5. **Paszke, A., et al.** (2019). PyTorch: An imperative style, high-performance deep learning library. *Advances in Neural Information Processing Systems*, 32.
+

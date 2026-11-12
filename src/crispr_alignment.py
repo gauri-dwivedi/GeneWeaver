@@ -223,3 +223,4 @@ def calculate_alignment_score(
     max_possible_penalty = max(1.0, guide_len * 1.75)
     score = 100.0 * max(0.0, 1.0 - (weighted_penalty / max_possible_penalty))
     return round(score, 2)
+

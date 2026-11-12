@@ -330,3 +330,4 @@ GeneWeaver is an in silico computational sequence-matching and educational profi
 
 This project is licensed under the **MIT License**.  
 Developed during an individual bioinformatics and software engineering internship at **Infotact Solutions**.
+

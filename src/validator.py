@@ -266,3 +266,4 @@ def validate_pam_pattern(raw_pam: str) -> ValidationResult:
         invalid_characters=invalid_chars,
         stats={"length": len(cleaned)}
     )
+

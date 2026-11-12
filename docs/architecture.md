@@ -99,3 +99,4 @@
 | **CUDA Available** | `torch.cuda.is_available() == True` | PyTorch tensors transferred to GPU memory (`cuda:0`). Windows synchronized before and after kernels. | `🚀 GPU: <device_name> (CUDA)` |
 | **CUDA Unavailable** | `torch.cuda.is_available() == False` | PyTorch tensors evaluated using CPU vectorized SIMD kernels. | `⚡ CPU (PyTorch Vectorized Fallback)` |
 | **Forced CPU** | `force_cpu=True` flag | Pure Python sliding window loop. Baseline reference. | `CPU (Python Native Reference)` |
+

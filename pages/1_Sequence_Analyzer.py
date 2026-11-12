@@ -225,3 +225,4 @@ if active_record is not None and active_record.sequence:
         st.success(f"Sequence `{active_record.id}` loaded into session! Go to the 'CRISPR Alignment' page to align guides against it.")
 else:
     st.info("Please select or upload a sequence above to begin analysis.")
+

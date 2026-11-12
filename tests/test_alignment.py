@@ -142,3 +142,4 @@ def test_cpu_engine_mismatch_filtering():
     res_cutoff_2 = engine.align(ref, "test_scaffold", guide, pam_pattern="NGG", max_mismatches=2)
     assert len(res_cutoff_2.matches) == 1
     assert res_cutoff_2.matches[0].mismatch_count == 2
+

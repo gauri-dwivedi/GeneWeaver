@@ -82,3 +82,4 @@ where $M = N - W + 1$. This operation creates a strided matrix view without copy
   $$\text{Throughput} = \frac{\text{Total Windows Evaluated}}{\text{Elapsed Time (seconds)}} \quad [\text{windows/sec}]$$
 - **Speedup Ratio**:
   $$\text{Speedup} = \frac{T_{\text{CPU Latency}}}{T_{\text{GPU Latency}}}$$
+

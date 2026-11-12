@@ -231,3 +231,4 @@ with tab_about:
 
 st.markdown("---")
 st.caption("GeneWeaver CRISPR Alignment Engine • Developed with Python, PyTorch & Biopython")
+

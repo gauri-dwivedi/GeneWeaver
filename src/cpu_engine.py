@@ -165,3 +165,4 @@ class CPUEngine:
             pam_pattern=clean_pam,
             max_mismatches=max_mismatches,
         )
+

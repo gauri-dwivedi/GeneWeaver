@@ -48,3 +48,4 @@ GeneWeaver performs **sequence-matching and mismatch counting**. It is a computa
 - A computational sequence match **does not** prove experimental cleavage or editing efficiency.
 - Biological editing is governed by chromatin accessibility, nucleosome positioning, DNA methylation, cellular Cas9 concentration, and complex thermodynamic free energies ($\Delta G$).
 - GeneWeaver results indicate candidate homology sites, not verified biological outcomes.
+

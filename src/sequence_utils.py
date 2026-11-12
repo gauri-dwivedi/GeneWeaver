@@ -158,3 +158,4 @@ def transcribe_to_rna(seq: str) -> str:
         str: RNA sequence.
     """
     return clean_sequence(seq).replace("T", "U")
+
