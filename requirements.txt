@@ -1,0 +1,19 @@
+# GeneWeaver: GPU-Accelerated CRISPR Alignment Engine
+# Core Bioinformatics and Sequence Processing
+biopython>=1.83
+
+# Scientific and Numerical Computing
+numpy>=1.26.0
+pandas>=2.2.0
+
+# Deep Learning / Tensor Acceleration (PyTorch)
+torch>=2.2.0
+
+# Interactive Web Application & Visualization
+streamlit>=1.35.0
+plotly>=5.20.0
+matplotlib>=3.8.0
+
+# Automated Testing
+pytest>=8.0.0
+

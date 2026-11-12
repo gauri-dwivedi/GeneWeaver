@@ -1,0 +1,4 @@
+Sequence Length (bp),Windows Evaluated,CPU Time (ms),GPU Engine Time (ms),CPU Throughput (win/s),GPU Engine Throughput (win/s),Speedup (CPU / GPU),Active Device,CUDA Enabled,Notes
+500,956,1.171,0.487,816500.83,1961025.69,2.4,CPU (PyTorch Vectorized Fallback - CUDA Unavailable),False,Vectorized tensor batching on CPU achieved 2.4x speedup over iterative loop.
+2500,4956,7.337,3.299,675448.22,1502227.89,2.22,CPU (PyTorch Vectorized Fallback - CUDA Unavailable),False,Vectorized tensor batching on CPU achieved 2.22x speedup over iterative loop.
+10000,19956,34.947,6.273,571037.77,3181354.4,5.57,CPU (PyTorch Vectorized Fallback - CUDA Unavailable),False,Vectorized tensor batching on CPU achieved 5.57x speedup over iterative loop.

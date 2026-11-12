@@ -1,0 +1,2 @@
+Reference ID,Strand,Start (1-based),End (1-based),Target DNA (5'->3'),PAM,Full Window,Mismatches,Mismatch Positions,Seed Mismatches (11-20),Distal Mismatches (1-10),Alignment Score,Visual Alignment
+synthetic_ref_01_emx1_locus,+,193,215,GAGTCCGAGCAGAAGAAGAA,GGG,GAGTCCGAGCAGAAGAAGAAGGG,0,None (Exact),0,0,100.0,||||||||||||||||||||

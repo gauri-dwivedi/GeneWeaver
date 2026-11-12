@@ -1,0 +1,9 @@
+guide_id,sequence,target_locus,expected_strand,expected_mismatches,pam_motif,notes
+G01_EMX1_Exact,GAGTCCGAGCAGAAGAAGAA,synthetic_ref_01_emx1_locus,forward,0,NGG,Canonical Human EMX1 site (Cong et al. 2013) - exact match
+G02_EMX1_1MM,GAGTCCGAGCAGTAGAAGAA,synthetic_ref_01_emx1_locus,forward,1,NGG,EMX1 target with single base substitution at position 14
+G03_EMX1_3MM,GAGTCCATGCAATAGAAGAA,synthetic_ref_01_emx1_locus,forward,3,NGG,EMX1 target with 3 substitutions across seed and non-seed regions
+G04_VEGFA_Target,GGGTGGGGGGAGTTTGCTCC,synthetic_ref_02_vegfa_locus,forward,0,NGG,Human VEGFA site 1 target (Fu et al. 2013) - exact match
+G05_ReverseStrand,GAGTCCGAGCAGAAGAAGAA,synthetic_ref_03_benchmark_array,reverse,0,NGG,Antisense strand test target with canonical SpCas9 PAM
+G06_NonMatching,CCCCCCCCCCCCCCCCCCCC,synthetic_ref_01_emx1_locus,none,99,NGG,Negative control - poly-C guide with zero expected target sites
+G07_Invalid_Chars,GAGTCCGNNNNAAGAAGAA,synthetic_ref_01_emx1_locus,none,99,NGG,Test input containing degenerate IUPAC 'N' characters (for validation error checks)
+G08_Short_Length,GAGTCCGAGCA,synthetic_ref_01_emx1_locus,none,99,NGG,Test input shorter than standard 20bp guide (11bp - for validation warning checks)
