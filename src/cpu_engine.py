@@ -147,10 +147,12 @@ class CPUEngine:
         elapsed_seconds = end_time - start_time
         elapsed_ms = elapsed_seconds * 1000.0
 
-        # Rank candidate matches:
-        # Primary sort: Mismatches ascending (fewest mismatches first)
-        # Secondary sort: Alignment Score descending (highest score first)
-        matches.sort(key=lambda m: (m.mismatch_count, -m.alignment_score))
+        # Rank candidate matches deterministically:
+        # 1. Primary: Mismatch count ascending (fewest mismatches first)
+        # 2. Secondary: Alignment score descending (highest specificity score first)
+        # 3. Tertiary: Genomic coordinate start_pos ascending (leftmost on chromosome first)
+        # 4. Quaternary: Strand ('+' before '-')
+        matches.sort(key=lambda m: (m.mismatch_count, -m.alignment_score, m.start_pos, m.strand))
 
         throughput = (total_windows / elapsed_seconds) if elapsed_seconds > 0 else float("inf")
 

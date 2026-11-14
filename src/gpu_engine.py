@@ -157,20 +157,29 @@ class GPUEngine:
         pam_slices = windows[:, guide_len:window_len]  # Shape: [num_windows, pam_len]
         target_slices = windows[:, 0:guide_len]        # Shape: [num_windows, guide_len]
 
-        # For canonical SpCas9 'NGG', vectorized check:
-        # pam_pattern is 3 chars: [0]='N', [1]='G', [2]='G'
-        if pam_pattern.upper() == "NGG" and pam_len == 3:
-            g_val = BASE_TO_INT["G"]
-            # Base 1 and Base 2 must be 'G' (index 1 and 2 in pam slice)
-            pam_mask = (pam_slices[:, 1] == g_val) & (pam_slices[:, 2] == g_val)
-        else:
-            # General IUPAC PAM check using candidate string lookup
-            pam_mask = torch.zeros(num_windows, dtype=torch.bool, device=self.device)
-            pam_slices_cpu = pam_slices.cpu()
-            for w_idx in range(num_windows):
-                pam_chars = "".join(INT_TO_BASE.get(int(v), "N") for v in pam_slices_cpu[w_idx])
-                if match_pam(pam_chars, pam_pattern):
-                    pam_mask[w_idx] = True
+        # Vectorized IUPAC PAM evaluation across all candidate windows on self.device:
+        # Evaluates canonical SpCas9 'NGG' as well as all degenerate IUPAC motifs
+        # (e.g. SaCas9 'NNGRRT', Cas12a 'TTTV', 'NAG', etc.) using parallel tensor operations.
+        pam_mask = torch.ones(num_windows, dtype=torch.bool, device=self.device)
+        for j in range(pam_len):
+            pat_char = pam_pattern[j].upper()
+            allowed_bases = IUPAC_NUCLEOTIDE_MAP.get(pat_char, {pat_char})
+            allowed_ints = [BASE_TO_INT[b] for b in allowed_bases if b in BASE_TO_INT]
+
+            if not allowed_ints:
+                # Character does not correspond to any valid canonical DNA base
+                pam_mask = torch.zeros(num_windows, dtype=torch.bool, device=self.device)
+                break
+            elif len(allowed_ints) == 1:
+                # Optimized single-base equality comparison (e.g. 'G', 'T')
+                pam_mask &= (pam_slices[:, j] == allowed_ints[0])
+            elif len(allowed_ints) == 4:
+                # 'N' (any canonical base A, C, G, T): must be < 4 (excludes unknown/invalid base 9)
+                pam_mask &= (pam_slices[:, j] < 4)
+            else:
+                # Degenerate IUPAC code (e.g. 'R' -> {A, G}, 'Y' -> {C, T}, 'S' -> {G, C}, etc.)
+                allowed_tensor = torch.tensor(allowed_ints, dtype=torch.int64, device=self.device)
+                pam_mask &= torch.isin(pam_slices[:, j], allowed_tensor)
 
         valid_window_indices = torch.nonzero(pam_mask, as_tuple=False).squeeze(-1)
 
@@ -308,8 +317,12 @@ class GPUEngine:
         elapsed_seconds = end_time - start_time
         elapsed_ms = elapsed_seconds * 1000.0
 
-        # Sort matches identically to CPU engine
-        matches.sort(key=lambda m: (m.mismatch_count, -m.alignment_score))
+        # Deterministic ranking identical to CPU engine:
+        # 1. Primary: Mismatch count ascending (fewest mismatches first)
+        # 2. Secondary: Alignment score descending (highest specificity score first)
+        # 3. Tertiary: Genomic coordinate start_pos ascending (leftmost on chromosome first)
+        # 4. Quaternary: Strand ('+' before '-')
+        matches.sort(key=lambda m: (m.mismatch_count, -m.alignment_score, m.start_pos, m.strand))
 
         throughput = (total_windows / elapsed_seconds) if elapsed_seconds > 0 else float("inf")
 
