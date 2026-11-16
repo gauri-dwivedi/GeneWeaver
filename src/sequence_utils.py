@@ -20,24 +20,31 @@ from typing import Dict, Any
 
 def clean_sequence(seq: str) -> str:
     """
-    Remove all whitespace, newlines, carriage returns, and numeric indices
-    from raw sequence input and convert to uppercase.
+    Perform harmless formatting cleanup:
+    1. Remove all whitespace characters (spaces, tabs, newlines, carriage returns).
+    2. Convert sequence to uppercase.
+
+    IMPORTANT:
+    Does NOT remove numeric characters (0-9) or punctuation symbols (e.g. '-', '*', '.').
+    Preserving non-alphabet characters ensures that invalid symbols are never silently
+    discarded and can be detected and reported by the validation engine.
 
     Parameters:
         seq (str): Raw DNA sequence string.
 
     Returns:
-        str: Cleaned, uppercase sequence string.
+        str: Whitespace-stripped, uppercase sequence string.
 
     Example:
-        >>> clean_sequence("  atg c\\n123  ")
+        >>> clean_sequence("  atg c\\n  ")
         'ATGC'
+        >>> clean_sequence("atg123")
+        'ATG123'
     """
     if not seq:
         return ""
-    # Filter out whitespace, digits (common in GenBank downloads), and formatting characters
-    cleaned = "".join(ch for ch in seq if not ch.isspace() and not ch.isdigit())
-    return cleaned.upper()
+    # Strip whitespace only; preserve all non-whitespace characters for validation
+    return "".join(ch for ch in seq if not ch.isspace()).upper()
 
 
 # Standard DNA base complement lookup table

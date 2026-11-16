@@ -33,18 +33,47 @@ class CRISPRTargetMatch:
     """
     Detailed information for a single candidate CRISPR target site identified on DNA.
 
+    Genomic Coordinate Convention:
+    ------------------------------
+    All genomic coordinates in GeneWeaver are strictly 1-based and fully inclusive,
+    referring directly to positions on the original forward reference sequence
+    (matching GFF3, NCBI, and Ensembl standard conventions).
+    - Length of interval = end_pos - start_pos + 1.
+    - Python slice on forward reference = clean_ref[start_pos - 1 : end_pos].
+
+    Forward Strand (+) Orientation:
+    - Target protospacer is at the 5' end: [target_start .. target_end].
+    - PAM motif is at the 3' end: [pam_start .. pam_end].
+    - target_start = start_pos
+    - target_end = start_pos + len(target) - 1
+    - pam_start = start_pos + len(target)
+    - pam_end = end_pos
+
+    Reverse-Complement Strand (-) Orientation:
+    - The candidate target lies on the antisense strand (5'->3' right-to-left).
+    - When mapped onto the forward reference sequence (5'->3' left-to-right):
+      The PAM's complement occupies the lower coordinates (left), and the target's
+      complement occupies the higher coordinates (right):
+      - pam_start = start_pos
+      - pam_end = start_pos + len(pam) - 1
+      - target_start = start_pos + len(pam)
+      - target_end = end_pos
+    - Sequence verification:
+      clean_ref[pam_start - 1 : pam_end] == reverse_complement(pam_sequence)
+      clean_ref[target_start - 1 : target_end] == reverse_complement(target_dna_sequence)
+
     Attributes:
         reference_id (str): Identifier of the reference chromosome/scaffold.
         strand (str): '+' (forward) or '-' (reverse-complement).
-        start_pos (int): 1-based start coordinate on the forward reference.
-        end_pos (int): 1-based end coordinate on the forward reference.
-        target_dna_sequence (str): The genomic protospacer sequence (matching guide).
-        pam_sequence (str): The genomic PAM motif sequence adjacent to protospacer.
-        full_window (str): Combined target + PAM sequence.
+        start_pos (int): 1-based inclusive start coordinate on the forward reference.
+        end_pos (int): 1-based inclusive end coordinate on the forward reference.
+        target_dna_sequence (str): The genomic protospacer sequence (5'->3' on the matching strand).
+        pam_sequence (str): The genomic PAM motif sequence (5'->3' on the matching strand).
+        full_window (str): Combined target + PAM sequence (5'->3' on matching strand).
         mismatch_count (int): Total number of base mismatches against guide.
         mismatch_positions (List[int]): 1-based mismatch indices relative to 5' end of guide.
-        seed_mismatches (int): Mismatches occurring in the PAM-proximal seed region (bases 11-20).
-        distal_mismatches (int): Mismatches in the PAM-distal region (bases 1-10).
+        seed_mismatches (int): Mismatches occurring in the PAM-proximal seed region.
+        distal_mismatches (int): Mismatches in the PAM-distal region.
         alignment_score (float): Normalized alignment score (0 - 100), where 100 = perfect match.
         alignment_visual (str): Visual representation of matching ('|' = match, '.' = mismatch).
     """
@@ -62,6 +91,34 @@ class CRISPRTargetMatch:
     alignment_score: float
     alignment_visual: str
 
+    @property
+    def target_start(self) -> int:
+        """1-based inclusive start coordinate of target protospacer on forward reference."""
+        if self.strand == "+":
+            return self.start_pos
+        return self.start_pos + len(self.pam_sequence)
+
+    @property
+    def target_end(self) -> int:
+        """1-based inclusive end coordinate of target protospacer on forward reference."""
+        if self.strand == "+":
+            return self.start_pos + len(self.target_dna_sequence) - 1
+        return self.end_pos
+
+    @property
+    def pam_start(self) -> int:
+        """1-based inclusive start coordinate of PAM motif on forward reference."""
+        if self.strand == "+":
+            return self.start_pos + len(self.target_dna_sequence)
+        return self.start_pos
+
+    @property
+    def pam_end(self) -> int:
+        """1-based inclusive end coordinate of PAM motif on forward reference."""
+        if self.strand == "+":
+            return self.end_pos
+        return self.start_pos + len(self.pam_sequence) - 1
+
     def to_dict(self) -> Dict[str, Any]:
         """Convert match object into dictionary suitable for pandas DataFrame display."""
         return {
@@ -69,6 +126,10 @@ class CRISPRTargetMatch:
             "Strand": self.strand,
             "Start (1-based)": self.start_pos,
             "End (1-based)": self.end_pos,
+            "Target Start": self.target_start,
+            "Target End": self.target_end,
+            "PAM Start": self.pam_start,
+            "PAM End": self.pam_end,
             "Target DNA (5'->3')": self.target_dna_sequence,
             "PAM": self.pam_sequence,
             "Full Window": self.full_window,
@@ -193,34 +254,74 @@ def calculate_alignment_score(
     guide_len: int,
     mismatch_count: int,
     seed_mismatches: int,
-    distal_mismatches: int
+    distal_mismatches: int,
 ) -> float:
     """
-    Calculate an alignment specificity score (0.0 to 100.0).
+    Calculate an alignment specificity score (0.0 to 100.0) with dynamic penalty
+    scaling for supported guide lengths (typically 15-30 bp in GeneWeaver).
 
-    Scoring Logic:
-    - Perfect match (0 mismatches) = 100.0.
-    - Seed region mismatches carry a heavier penalty (weight = 2.5x)
-      because mismatches close to the PAM disrupt Cas9 R-loop formation.
-    - Distal region mismatches carry standard penalty (weight = 1.0x).
-    - Score is normalized between 0.0 and 100.0:
-        penalty = (distal_mm * 1.0 + seed_mm * 2.5) / (guide_len * 1.5)
-        score = max(0.0, 100.0 * (1.0 - penalty))
+    Scoring Logic & Scientific Calibration:
+    ---------------------------------------
+    - Exact match (0 mismatches) = 100.0.
+    - Cas9 target interrogation initiates at the PAM-proximal end (seed region,
+      defined as the last min(10, guide_len) nucleotides adjacent to the 3' PAM).
+    - Mismatches in the seed region carry a heavier penalty (weight = 2.5x)
+      because they disrupt initial R-loop nucleation (Hsu et al., Nat Biotechnol 2013).
+    - Mismatches in the PAM-distal region carry standard penalty (weight = 1.0x).
+    - Dynamic Maximum Penalty:
+        seed_len = min(10, max(1, guide_len))
+        distal_len = max(0, guide_len - seed_len)
+        max_possible_penalty = (distal_len * 1.0) + (seed_len * 2.5)
+      For a canonical 20 bp guide:
+        max_possible_penalty = (10 * 1.0) + (10 * 2.5) = 35.0
+        (Identical to the 20 * 1.75 = 35.0 baseline, preserving exact backward compatibility).
+    - Normalized Score:
+        weighted_penalty = (distal_mismatches * 1.0) + (seed_mismatches * 2.5)
+        score = 100.0 * max(0.0, 1.0 - (weighted_penalty / max_possible_penalty))
+
+    Biological Scope & Modeling Boundary:
+    -------------------------------------
+    The 15-30 bp range and 10 bp seed partition represent GeneWeaver's software
+    validation and modeling bounds for SpCas9-like Type II CRISPR systems (accommodating
+    standard 20 bp guides, truncated 17-19 bp tru-gRNAs, and extended 21-25 bp guides).
+    These bounds are engineering and heuristic modeling parameters, NOT universal
+    biological laws. Nature features diverse CRISPR-Cas orthologs (e.g. Cas12a/Cpf1,
+    Cas13, Cas14, and compact Cas12f) with different guide architectures, seed lengths,
+    and cleavage kinetics.
+
+    Numerical Example 1 (Standard 20 bp Guide):
+    -------------------------------------------
+    - Guide length: 20 bp (seed_len = 10, distal_len = 10)
+    - Target has 1 distal mismatch and 1 seed mismatch (total 2 mismatches):
+        weighted_penalty = (1 * 1.0) + (1 * 2.5) = 3.5
+        max_possible_penalty = (10 * 1.0) + (10 * 2.5) = 35.0
+        score = 100.0 * (1.0 - 3.5 / 35.0) = 100.0 * 0.90 = 90.00
+
+    Numerical Example 2 (Truncated 17 bp Guide, tru-gRNA):
+    ------------------------------------------------------
+    - Guide length: 17 bp (seed_len = 10, distal_len = 7)
+    - Target has 2 distal mismatches and 0 seed mismatches (total 2 mismatches):
+        weighted_penalty = (2 * 1.0) + (0 * 2.5) = 2.0
+        max_possible_penalty = (7 * 1.0) + (10 * 2.5) = 32.0
+        score = 100.0 * (1.0 - 2.0 / 32.0) = 100.0 * 0.9375 = 93.75
 
     Parameters:
         guide_len (int): Total guide length.
-        mismatch_count (int): Total mismatches.
+        mismatch_count (int): Total base mismatches.
         seed_mismatches (int): Seed region mismatches.
         distal_mismatches (int): Distal region mismatches.
 
     Returns:
-        float: Score ranging from 0.0 to 100.0.
+        float: Score ranging from 0.0 to 100.0 rounded to 2 decimal places.
     """
     if mismatch_count == 0:
         return 100.0
 
+    seed_len = min(10, max(1, guide_len))
+    distal_len = max(0, guide_len - seed_len)
+    max_possible_penalty = max(1.0, (distal_len * 1.0) + (seed_len * 2.5))
+
     weighted_penalty = (distal_mismatches * 1.0) + (seed_mismatches * 2.5)
-    max_possible_penalty = max(1.0, guide_len * 1.75)
     score = 100.0 * max(0.0, 1.0 - (weighted_penalty / max_possible_penalty))
     return round(score, 2)
 

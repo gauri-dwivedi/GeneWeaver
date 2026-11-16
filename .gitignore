@@ -25,3 +25,6 @@ desktop.ini
 # Output results (keep directory, ignore ad-hoc outputs if needed)
 results/*.png
 
+
+# Generated benchmark reports
+results/benchmark_run_*.csv

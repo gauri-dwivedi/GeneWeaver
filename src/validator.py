@@ -128,15 +128,26 @@ def validate_dna_sequence(
         if len(invalid_chars) > 5:
             pos_str += f" ... (+{len(invalid_chars) - 5} more)"
 
+        has_digits = any(item["character"].isdigit() for item in invalid_chars)
+        has_symbols = any(not item["character"].isalnum() for item in invalid_chars)
+
+        detail_suffix = ""
+        if has_digits and has_symbols:
+            detail_suffix = " Numeric digits and punctuation symbols must not be included."
+        elif has_digits:
+            detail_suffix = " Numeric digits (0-9) must not be included."
+        elif has_symbols:
+            detail_suffix = " Punctuation and formatting symbols must not be included."
+
         if allow_ambiguous:
             errors.append(
                 f"{sequence_label} contains invalid character(s): {', '.join(unique_invalids)}. "
-                f"Positions (1-indexed): [{pos_str}]. Allowed: standard bases (A, C, G, T) or IUPAC codes."
+                f"Positions (1-indexed): [{pos_str}]. Allowed: standard bases (A, C, G, T) or IUPAC codes.{detail_suffix}"
             )
         else:
             errors.append(
                 f"{sequence_label} contains non-standard base character(s): {', '.join(unique_invalids)}. "
-                f"Positions (1-indexed): [{pos_str}]. Only canonical DNA bases (A, C, G, T) are permitted."
+                f"Positions (1-indexed): [{pos_str}]. Only canonical DNA bases (A, C, G, T) are permitted.{detail_suffix}"
             )
 
     # 3. Informational warnings
