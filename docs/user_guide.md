@@ -99,5 +99,5 @@ To run the complete test suite:
 ```powershell
 .\.venv\Scripts\pytest tests/ -v
 ```
-All 33 unit and integration tests should pass.
+The current test suite contains 70 tests, and all 70 should pass.
 
