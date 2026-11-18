@@ -36,6 +36,16 @@ def test_match_pam_degenerate_iupac():
     assert match_pam("CCGGGT", "NNGRRT") is True
     assert match_pam("CCGGGA", "NNGRRT") is False  # Ends with A instead of T
 
+def test_match_pam_different_lengths():
+    """PAM sequences with different lengths should not match."""
+    assert match_pam("AG", "NGG") is False
+    assert match_pam("AGGG", "NGG") is False
+
+
+def test_match_pam_case_insensitive():
+    """PAM matching should work regardless of letter case."""
+    assert match_pam("agg", "NGG") is True
+    assert match_pam("AGG", "ngg") is True
 
 # ============================================================================
 # Mismatch Calculation & Scoring Tests
