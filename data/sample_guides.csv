@@ -1,7 +1,7 @@
-guide_id,sequence,target_locus,expected_strand,expected_mismatches,pam_motif,notes
+﻿guide_id,sequence,target_locus,expected_strand,expected_mismatches,pam_motif,notes
 G01_EMX1_Exact,GAGTCCGAGCAGAAGAAGAA,synthetic_ref_01_emx1_locus,forward,0,NGG,Synthetic benchmark guide modeled after human EMX1 target (Cong et al. 2013); demonstration only
 G02_EMX1_1MM,GAGTCCGAGCAGTAGAAGAA,synthetic_ref_01_emx1_locus,forward,1,NGG,Synthetic off-target model with single base substitution at position 14
-G03_EMX1_3MM,GAGTCCATGCAATAGAAGAA,synthetic_ref_01_emx1_locus,forward,3,NGG,Synthetic off-target model with 3 substitutions across seed and non-seed regions
+G03_EMX1_3MM,GAGTCCATGCAAAAGAAGAA,synthetic_ref_01_emx1_locus,forward,3,NGG,Synthetic off-target model with 3 substitutions across seed and non-seed regions
 G04_VEGFA_Target,GGGTGGGGGGAGTTTGCTCC,synthetic_ref_02_vegfa_locus,forward,0,NGG,Synthetic benchmark guide modeled after human VEGFA site 1 (Fu et al. 2013); demonstration only
 G05_ReverseStrand,GAGTCCGAGCAGAAGAAGAA,synthetic_ref_03_benchmark_array,reverse,0,NGG,Antisense strand test target with canonical SpCas9 PAM
 G06_NonMatching,CCCCCCCCCCCCCCCCCCCC,synthetic_ref_01_emx1_locus,none,99,NGG,Negative control - synthetic poly-C guide with zero expected target sites

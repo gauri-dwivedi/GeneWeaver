@@ -10,6 +10,7 @@ from src.crispr_alignment import (
     CRISPRTargetMatch,
 )
 from src.cpu_engine import CPUEngine
+from src.input_handler import load_sample_reference_fasta, load_sample_guides_csv
 from src.sequence_utils import reverse_complement
 
 
@@ -519,3 +520,62 @@ def test_alignment_duplicate_result_prevention_on_repeats():
     start_positions = [m.start_pos for m in res.matches]
     assert len(start_positions) == len(set(start_positions))
 
+
+def test_sample_g03_has_expected_three_mismatches():
+    """Verify G03 sample data matches its documented 3-mismatch ground truth."""
+
+    references = {
+        record.id: record
+        for record in load_sample_reference_fasta(strict=True)
+    }
+
+    guides = load_sample_guides_csv()
+    guide = guides.loc[guides["guide_id"] == "G03_EMX1_3MM"].iloc[0]
+
+    reference = references[guide["target_locus"]]
+
+    result = CPUEngine().align(
+        reference.sequence,
+        reference.id,
+        guide["sequence"],
+        pam_pattern=guide["pam_motif"],
+        max_mismatches=int(guide["expected_mismatches"]),
+    )
+
+    assert any(
+        match.strand == "+"
+        and match.mismatch_count == 3
+        and match.pam_sequence == "GGG"
+        for match in result.matches
+    )
+
+
+def test_sample_g05_has_reverse_strand_match():
+    """Verify G05 sample data contains a valid reverse-strand target."""
+
+    references = {
+        record.id: record
+        for record in load_sample_reference_fasta(strict=True)
+    }
+
+    guides = load_sample_guides_csv()
+    guide = guides.loc[
+        guides["guide_id"] == "G05_ReverseStrand"
+    ].iloc[0]
+
+    reference = references[guide["target_locus"]]
+
+    result = CPUEngine().align(
+        reference.sequence,
+        reference.id,
+        guide["sequence"],
+        pam_pattern=guide["pam_motif"],
+        max_mismatches=0,
+    )
+
+    assert any(
+        match.strand == "-"
+        and match.mismatch_count == 0
+        and match.pam_sequence == "CGG"
+        for match in result.matches
+    )
