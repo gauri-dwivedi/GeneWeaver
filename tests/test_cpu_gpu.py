@@ -326,19 +326,21 @@ def test_cpu_gpu_non_canonical_and_ambiguous_reference_characters():
     guide = "GAGTCCGAGCAGAAGAAGAA"
     # Target has 'N' and 'X' in reference
     # Guide has G at pos 1, reference has N. Guide has C at pos 6, reference has X.
-    target_with_ambig = "NAGTCCGAGCAGAAGAAGAA" + "CGG"
+    target_with_ambig = "NAGTCXGAGCAGAAGAAGAA" + "CGG"
     ref = ("C" * 20) + target_with_ambig + ("G" * 20)
 
     cpu_engine = CPUEngine()
     gpu_engine = GPUEngine()
 
     # Allowed up to 1 mismatch -> Should find 1 match (pos 1 N != G counts as 1 mismatch)
-    cpu_res = cpu_engine.align(ref, "ambig_ref", guide, pam_pattern="NGG", max_mismatches=1)
-    gpu_res = gpu_engine.align(ref, "ambig_ref", guide, pam_pattern="NGG", max_mismatches=1)
+    cpu_res = cpu_engine.align(ref, "ambig_ref", guide, pam_pattern="NGG", max_mismatches=2)
+    gpu_res = gpu_engine.align(ref, "ambig_ref", guide, pam_pattern="NGG", max_mismatches=2)
 
     assert len(cpu_res.matches) == 1
     assert len(gpu_res.matches) == 1
-    assert cpu_res.matches[0].mismatch_count == 1
-    assert gpu_res.matches[0].mismatch_count == 1
+    assert cpu_res.matches[0].mismatch_count == 2
+    assert gpu_res.matches[0].mismatch_count == 2
+    assert cpu_res.matches[0].mismatch_positions == [1, 6]
+    assert gpu_res.matches[0].mismatch_positions == [1, 6]
     assert cpu_res.matches[0].start_pos == gpu_res.matches[0].start_pos
     assert cpu_res.matches[0].alignment_score == gpu_res.matches[0].alignment_score
