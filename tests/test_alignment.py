@@ -579,3 +579,23 @@ def test_sample_g05_has_reverse_strand_match():
         and match.pam_sequence == "CGG"
         for match in result.matches
     )
+def test_alignment_reference_exactly_matches_window_length():
+    """Verify exact-length reference scanning."""
+
+    guide = "GAGTCCGAGCAGAAGAAGAA"
+    pam = "AGG"
+    ref = guide + pam
+
+    result = CPUEngine().align(
+        ref,
+        "exact_length_ref",
+        guide,
+        pam_pattern="NGG",
+        max_mismatches=0,
+    )
+
+    assert len(result.matches) == 1
+    assert result.total_windows_evaluated == 2
+    assert result.matches[0].strand == "+"
+    assert result.matches[0].start_pos == 1
+    assert result.matches[0].end_pos == 23
